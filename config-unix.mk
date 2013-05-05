@@ -145,7 +145,7 @@ endif
 
 ifeq (sunos,$(PLATFORM))
 RUNNER_LDFLAGS += -pthreads
-else ifneq(,findstring(cygwin,$(PLATFORM)))
+else ifneq (,findstring cygwin,$(PLATFORM))
 RUNNER_LDFLAGS += -lpthread
 else
 RUNNER_LDFLAGS += -pthread
