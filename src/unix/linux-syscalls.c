@@ -21,7 +21,13 @@
 
 #include "linux-syscalls.h"
 #include <unistd.h>
-#include <sys/syscall.h>
+#ifndef __CYGWIN__
+# include <sys/syscall.h>
+#else
+# include <sys/socket.h>
+# include <sys/stat.h>
+# include <sys/unistd.h>
+#endif
 #include <sys/types.h>
 #include <errno.h>
 
@@ -201,7 +207,7 @@
 
 
 int uv__accept4(int fd, struct sockaddr* addr, socklen_t* addrlen, int flags) {
-#if defined(__i386__)
+#if defined(__i386__) && !defined(__CYGWIN__)
   unsigned long args[4];
   int r;
 
@@ -223,6 +229,8 @@ int uv__accept4(int fd, struct sockaddr* addr, socklen_t* addrlen, int flags) {
   return r;
 #elif defined(__NR_accept4)
   return syscall(__NR_accept4, fd, addr, addrlen, flags);
+#elif defined(__CYGWIN__)
+  return accept4(fd, addr, addrlen, flags); 
 #else
   return errno = ENOSYS, -1;
 #endif
@@ -230,7 +238,7 @@ int uv__accept4(int fd, struct sockaddr* addr, socklen_t* addrlen, int flags) {
 
 
 int uv__eventfd(unsigned int count) {
-#if defined(__NR_eventfd)
+#if defined(__NR_eventfd) && !defined(__CYGWIN__)
   return syscall(__NR_eventfd, count);
 #else
   return errno = ENOSYS, -1;
@@ -239,7 +247,7 @@ int uv__eventfd(unsigned int count) {
 
 
 int uv__eventfd2(unsigned int count, int flags) {
-#if defined(__NR_eventfd2)
+#if defined(__NR_eventfd2) && !defined(__CYGWIN__)
   return syscall(__NR_eventfd2, count, flags);
 #else
   return errno = ENOSYS, -1;
@@ -248,7 +256,7 @@ int uv__eventfd2(unsigned int count, int flags) {
 
 
 int uv__epoll_create(int size) {
-#if defined(__NR_epoll_create)
+#if defined(__NR_epoll_create) && !defined(__CYGWIN__)
   return syscall(__NR_epoll_create, size);
 #else
   return errno = ENOSYS, -1;
@@ -257,7 +265,7 @@ int uv__epoll_create(int size) {
 
 
 int uv__epoll_create1(int flags) {
-#if defined(__NR_epoll_create1)
+#if defined(__NR_epoll_create1) && !defined(__CYGWIN__)
   return syscall(__NR_epoll_create1, flags);
 #else
   return errno = ENOSYS, -1;
@@ -266,7 +274,7 @@ int uv__epoll_create1(int flags) {
 
 
 int uv__epoll_ctl(int epfd, int op, int fd, struct uv__epoll_event* events) {
-#if defined(__NR_epoll_ctl)
+#if defined(__NR_epoll_ctl) && !defined(__CYGWIN__)
   return syscall(__NR_epoll_ctl, epfd, op, fd, events);
 #else
   return errno = ENOSYS, -1;
@@ -278,7 +286,7 @@ int uv__epoll_wait(int epfd,
                    struct uv__epoll_event* events,
                    int nevents,
                    int timeout) {
-#if defined(__NR_epoll_wait)
+#if defined(__NR_epoll_wait) && !defined(__CYGWIN__)
   return syscall(__NR_epoll_wait, epfd, events, nevents, timeout);
 #else
   return errno = ENOSYS, -1;
@@ -291,7 +299,7 @@ int uv__epoll_pwait(int epfd,
                     int nevents,
                     int timeout,
                     const sigset_t* sigmask) {
-#if defined(__NR_epoll_pwait)
+#if defined(__NR_epoll_pwait) && !defined(__CYGWIN__)
   return syscall(__NR_epoll_pwait,
                  epfd,
                  events,
@@ -306,7 +314,7 @@ int uv__epoll_pwait(int epfd,
 
 
 int uv__inotify_init(void) {
-#if defined(__NR_inotify_init)
+#if defined(__NR_inotify_init) && !defined(__CYGWIN__)
   return syscall(__NR_inotify_init);
 #else
   return errno = ENOSYS, -1;
@@ -315,7 +323,7 @@ int uv__inotify_init(void) {
 
 
 int uv__inotify_init1(int flags) {
-#if defined(__NR_inotify_init1)
+#if defined(__NR_inotify_init1) && !defined(__CYGWIN__)
   return syscall(__NR_inotify_init1, flags);
 #else
   return errno = ENOSYS, -1;
@@ -324,7 +332,7 @@ int uv__inotify_init1(int flags) {
 
 
 int uv__inotify_add_watch(int fd, const char* path, uint32_t mask) {
-#if defined(__NR_inotify_add_watch)
+#if defined(__NR_inotify_add_watch) && !defined(__CYGWIN__)
   return syscall(__NR_inotify_add_watch, fd, path, mask);
 #else
   return errno = ENOSYS, -1;
@@ -333,7 +341,7 @@ int uv__inotify_add_watch(int fd, const char* path, uint32_t mask) {
 
 
 int uv__inotify_rm_watch(int fd, int32_t wd) {
-#if defined(__NR_inotify_rm_watch)
+#if defined(__NR_inotify_rm_watch) && !defined(__CYGWIN__)
   return syscall(__NR_inotify_rm_watch, fd, wd);
 #else
   return errno = ENOSYS, -1;
@@ -342,8 +350,10 @@ int uv__inotify_rm_watch(int fd, int32_t wd) {
 
 
 int uv__pipe2(int pipefd[2], int flags) {
-#if defined(__NR_pipe2)
+#if defined(__NR_pipe2) && !defined(__CYGWIN__)
   return syscall(__NR_pipe2, pipefd, flags);
+#elif defined(__CYGWIN__)
+  return pipe2(pipefd, flags);
 #else
   return errno = ENOSYS, -1;
 #endif
@@ -354,7 +364,7 @@ int uv__sendmmsg(int fd,
                  struct uv__mmsghdr* mmsg,
                  unsigned int vlen,
                  unsigned int flags) {
-#if defined(__NR_sendmmsg)
+#if defined(__NR_sendmmsg) && !defined(__CYGWIN__)
   return syscall(__NR_sendmmsg, fd, mmsg, vlen, flags);
 #else
   return errno = ENOSYS, -1;
@@ -367,7 +377,7 @@ int uv__recvmmsg(int fd,
                  unsigned int vlen,
                  unsigned int flags,
                  struct timespec* timeout) {
-#if defined(__NR_recvmmsg)
+#if defined(__NR_recvmmsg) && !defined(__CYGWIN__)
   return syscall(__NR_recvmmsg, fd, mmsg, vlen, flags, timeout);
 #else
   return errno = ENOSYS, -1;
@@ -380,8 +390,10 @@ int uv__utimesat(int dirfd,
                  const struct timespec times[2],
                  int flags)
 {
-#if defined(__NR_utimensat)
+#if defined(__NR_utimensat) && !defined(__CYGWIN__)
   return syscall(__NR_utimensat, dirfd, path, times, flags);
+#elif defined(__CYGWIN__)
+  return utimensat(dirfd, path, times, flags);
 #else
   return errno = ENOSYS, -1;
 #endif

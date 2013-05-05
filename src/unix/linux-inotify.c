@@ -22,6 +22,10 @@
 #include "tree.h"
 #include "internal.h"
 
+#ifdef __CYGWIN__
+# include "linux-syscalls.h"
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

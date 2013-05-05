@@ -109,6 +109,15 @@ OBJS += src/unix/linux-core.o \
         src/unix/proctitle.o
 endif
 
+ifneq (,findstring cygwin,$(PLATFORM))
+CSTDFLAG += -D_GNU_SOURCE -D_POSIX_TIMERS -D_POSIX_MONOTONIC_CLOCK
+OBJS += src/unix/barrier.o \
+	src/unix/linux-core.o \
+	src/unix/linux-inotify.o \
+	src/unix/linux-syscalls.o \
+	src/unix/proctitle.o
+endif
+
 ifeq (freebsd,$(PLATFORM))
 HAVE_DTRACE=1
 LDFLAGS+=-lkvm
@@ -136,6 +145,8 @@ endif
 
 ifeq (sunos,$(PLATFORM))
 RUNNER_LDFLAGS += -pthreads
+else ifneq(,findstring(cygwin,$(PLATFORM)))
+RUNNER_LDFLAGS += -lpthread
 else
 RUNNER_LDFLAGS += -pthread
 endif

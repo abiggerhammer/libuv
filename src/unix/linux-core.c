@@ -30,7 +30,12 @@
 
 #include <net/if.h>
 #include <sys/param.h>
-#include <sys/prctl.h>
+#ifndef __CYGWIN__
+# include <sys/prctl.h>
+#else
+# include "linux-syscalls.h"
+# define PF_PACKET 17 /* apparently we just need the value */
+#endif
 #include <sys/sysinfo.h>
 #include <unistd.h>
 #include <fcntl.h>

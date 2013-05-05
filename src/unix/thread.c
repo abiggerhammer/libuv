@@ -30,6 +30,10 @@
 #include <sys/time.h>
 #endif /* defined(__APPLE__) && defined(__MACH__) */
 
+#if defined(__CYGWIN__)
+#define PTHREAD_BARRIER_SERIAL_THREAD -1
+#endif /* defined(__CYGWIN__) */
+
 #undef NANOSEC
 #define NANOSEC ((uint64_t) 1e9)
 
